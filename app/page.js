@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 
 const candidates = [
   { id: 'aishwarya', name: 'Aishwarya Mahobiya', initials: 'AM' },
@@ -40,7 +40,25 @@ export default function Home() {
     });
   }
 
-  async function submit(e) {
+  useEffect(() => {
+    function onMessage(event) {
+      if (event.origin !== 'https://script.google.com' && event.origin !== 'https://script.googleusercontent.com') return;
+      const data = event.data || {};
+      if (data.type !== 'IPC_VOTE_RESULT') return;
+
+      if (data.success) {
+        setSubmitted(true);
+      } else {
+        setError(data.message || 'Your vote could not be recorded.');
+      }
+      setSubmitting(false);
+    }
+
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, []);
+
+  function submit(e) {
     e.preventDefault();
     if (!emailValid) return setError('Please use your @stud.tiss.ac.in email address.');
     if (!complete) return setError('Please select a candidate for all four preferences.');
@@ -57,31 +75,23 @@ export default function Home() {
     setSubmitting(true);
     setError('');
 
-    try {
-      const response = await fetch('/api/vote', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const raw = await response.text();
-      let result;
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'https://script.google.com/a/macros/stud.tiss.ac.in/s/AKfycbwWHbZDU2_0fW_qAmYCtUBlFtRvc3H-9WV1QtX_zd960wl6On2v9_kuYk0YuOaDKYMI/exec';
+    form.target = 'ipc-vote-response';
+    form.style.display = 'none';
 
-      try {
-        result = raw ? JSON.parse(raw) : null;
-      } catch {
-        throw new Error('The election server returned an invalid response.');
-      }
+    Object.entries(payload).forEach(([name, value]) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = name;
+      input.value = value || '';
+      form.appendChild(input);
+    });
 
-      if (!response.ok || !result || !result.success) {
-        throw new Error(result?.message || 'Your vote could not be recorded.');
-      }
-
-      setSubmitted(true);
-    } catch (err) {
-      setError(err.message || 'Unable to submit your vote. Please try again.');
-    } finally {
-      setSubmitting(false);
-    }
+    document.body.appendChild(form);
+    form.submit();
+    setTimeout(() => form.remove(), 2000);
   }
 
   if (submitted) {
@@ -100,7 +110,9 @@ export default function Home() {
   }
 
   return (
-    <main className="page">
+    <>
+      <iframe name="ipc-vote-response" title="Vote response" style={{ display: 'none' }} />
+      <main className="page">
       <div className="watermark">TISS</div>
       <div className="shell">
         <header className="header">

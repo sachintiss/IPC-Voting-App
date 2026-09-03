@@ -8,115 +8,53 @@ const ALLOWED_CANDIDATES = [
   "Pranav Rajendra Dande"
 ];
 
-function doGet(e) {
-  // Health check
-  if (!e || !e.parameter || e.parameter.action !== "submit") {
-    return jsonResponse({
-      success: true,
-      message: "Junior PPG IPC Election API is running."
-    });
-  }
-
-  return processVote(
-    e.parameter.email,
-    e.parameter.first,
-    e.parameter.second,
-    e.parameter.third,
-    e.parameter.fourth
-  );
+function doGet() {
+  return jsonResponse({
+    success: true,
+    message: "Junior PPG IPC Election API is running."
+  });
 }
 
 function doPost(e) {
-  try {
-    let body = {};
-
-    if (e && e.postData && e.postData.contents) {
-      try {
-        body = JSON.parse(e.postData.contents);
-      } catch (_) {
-        body = {};
-      }
-    }
-
-    const params = e && e.parameter ? e.parameter : {};
-
-    return processVote(
-      body.email || params.email,
-      body.first || params.first,
-      body.second || params.second,
-      body.third || params.third,
-      body.fourth || params.fourth
-    );
-  } catch (error) {
-    console.error(error);
-    return jsonResponse({
-      success: false,
-      message: "Unable to process vote: " + error.message
-    });
-  }
-}
-
-function processVote(email, first, second, third, fourth) {
   const lock = LockService.getScriptLock();
 
   try {
     lock.waitLock(15000);
 
-    email = String(email || "").trim().toLowerCase();
-
+    const p = (e && e.parameter) ? e.parameter : {};
+    const email = String(p.email || "").trim().toLowerCase();
     const preferences = [
-      String(first || "").trim(),
-      String(second || "").trim(),
-      String(third || "").trim(),
-      String(fourth || "").trim()
+      String(p.first || "").trim(),
+      String(p.second || "").trim(),
+      String(p.third || "").trim(),
+      String(p.fourth || "").trim()
     ];
 
     if (!/^[^\s@]+@stud\.tiss\.ac\.in$/i.test(email)) {
-      return jsonResponse({
-        success: false,
-        message: "Only @stud.tiss.ac.in email addresses are allowed."
-      });
+      return htmlResponse(false, "Only @stud.tiss.ac.in email addresses are allowed.");
     }
 
     if (preferences.some(p => !p)) {
-      return jsonResponse({
-        success: false,
-        message: "Please select all four preferences."
-      });
+      return htmlResponse(false, "Please select all four preferences.");
     }
 
     if (new Set(preferences).size !== 4) {
-      return jsonResponse({
-        success: false,
-        message: "Each candidate can only be selected once."
-      });
+      return htmlResponse(false, "Each candidate can only be selected once.");
     }
 
     if (preferences.some(p => !ALLOWED_CANDIDATES.includes(p))) {
-      return jsonResponse({
-        success: false,
-        message: "Invalid candidate selection."
-      });
+      return htmlResponse(false, "Invalid candidate selection.");
     }
 
-    const sheet = SpreadsheetApp
-      .openById(SHEET_ID)
-      .getSheets()[0];
-
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheets()[0];
     const lastRow = sheet.getLastRow();
 
     if (lastRow >= 2) {
-      const emails = sheet
-        .getRange(2, 2, lastRow - 1, 1)
-        .getValues()
-        .flat()
+      const emails = sheet.getRange(2, 2, lastRow - 1, 1).getValues().flat()
         .map(v => String(v).trim().toLowerCase());
 
       if (emails.includes(email)) {
-        return jsonResponse({
-          success: false,
-          message: "A vote has already been submitted from this email address."
-        });
+        return htmlResponse(false, "A vote has already been submitted from this email address.");
       }
     }
 
@@ -131,21 +69,13 @@ function processVote(email, first, second, third, fourth) {
 
     SpreadsheetApp.flush();
 
-    return jsonResponse({
-      success: true,
-      message: "Vote recorded successfully."
-    });
+    return htmlResponse(true, "Vote recorded successfully.");
 
   } catch (error) {
     console.error(error);
-    return jsonResponse({
-      success: false,
-      message: "Unable to record vote: " + error.message
-    });
+    return htmlResponse(false, "Unable to record vote: " + error.message);
   } finally {
-    try {
-      lock.releaseLock();
-    } catch (_) {}
+    try { lock.releaseLock(); } catch (_) {}
   }
 }
 
@@ -153,4 +83,22 @@ function jsonResponse(data) {
   return ContentService
     .createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+function htmlResponse(success, message) {
+  const safeMessage = JSON.stringify(String(message));
+  const safeSuccess = success ? "true" : "false";
+
+  const html = `<!doctype html><html><head><meta charset="utf-8"></head><body>
+<script>
+(function() {
+  var result = { type: 'IPC_VOTE_RESULT', success: ${safeSuccess}, message: ${safeMessage} };
+  try { window.parent.postMessage(result, '*'); } catch (e) {}
+})();
+</script>
+</body></html>`;
+
+  return HtmlService
+    .createHtmlOutput(html)
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }

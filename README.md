@@ -1,16 +1,8 @@
 # Junior PPG IPC Election 2026
 
-Minimal TISS-style ranked ballot for Vercel.
+Final version: the browser submits the ballot directly to the Google Apps Script web app using a hidden iframe. This avoids the Vercel-to-Apps-Script redirect/CORS response problem.
 
-## Google Sheet integration
-The Vercel API posts to the exact Google Apps Script Web App URL supplied for the TISS Workspace deployment. The payload uses URL-encoded parameters because Apps Script reliably exposes these as `e.parameter`.
+Apps Script deployment URL used by the app:
+https://script.google.com/a/macros/stud.tiss.ac.in/s/AKfycbwWHbZDU2_0fW_qAmYCtUBlFtRvc3H-9WV1QtX_zd960wl6On2v9_kuYk0YuOaDKYMI/exec
 
-### Apps Script
-Paste `APPS_SCRIPT_CODE.gs` into Code.gs, save, and deploy the Web App as:
-- Execute as: Me
-- Who has access: Anyone (or the appropriate TISS Workspace setting that allows the Vercel server to call it)
-
-The Sheet columns must be row 1:
-Timestamp | Email | 1st Preference | 2nd Preference | 3rd Preference | 4th Preference
-
-The backend validates the TISS student domain, four distinct approved candidates, and one vote per email.
+Sheet ID: 1OSC_RBx5g5Bwy7f8CTI2NJN4UIisXRgw19smMGAnDI0
