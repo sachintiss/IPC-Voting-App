@@ -63,10 +63,17 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      const result = await response.json();
+      const raw = await response.text();
+      let result;
 
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || 'Your vote could not be recorded.');
+      try {
+        result = raw ? JSON.parse(raw) : null;
+      } catch {
+        throw new Error('The election server returned an invalid response.');
+      }
+
+      if (!response.ok || !result || !result.success) {
+        throw new Error(result?.message || 'Your vote could not be recorded.');
       }
 
       setSubmitted(true);
