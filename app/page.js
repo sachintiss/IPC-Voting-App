@@ -1,101 +1,183 @@
-"use client";
-import { useMemo, useState } from "react";
+'use client';
 
-const API_URL = "https://script.google.com/a/macros/stud.tiss.ac.in/s/AKfycbxAZbTbSNNnnkwQRzLgJvzTGrHAN14L3EI3QovGFV28sGzOyt6MdkmeJwYxrsMnlk0x/exec";
+import { useMemo, useState } from 'react';
+
 const candidates = [
-  { id:"aishwarya", name:"Aishwarya Mahobiya", initials:"AM" },
-  { id:"avantika", name:"Avantika Kumari", initials:"AK" },
-  { id:"himanshu", name:"Himanshu Lodhi", initials:"HL" },
-  { id:"dhanush", name:"M Dhanush", initials:"MD" },
-  { id:"pranav", name:"Pranav Rajendra Dande", initials:"PD" }
+  { id: 'aishwarya', name: 'Aishwarya Mahobiya', initials: 'AM' },
+  { id: 'avantika', name: 'Avantika Kumari', initials: 'AK' },
+  { id: 'himanshu', name: 'Himanshu Lodhi', initials: 'HL' },
+  { id: 'dhanush', name: 'M Dhanush', initials: 'MD' },
+  { id: 'pranav', name: 'Pranav Rajendra Dande', initials: 'PD' }
 ];
+
 const preferences = [
-  {key:"first", short:"1st", label:"1st Preference"},
-  {key:"second", short:"2nd", label:"2nd Preference"},
-  {key:"third", short:"3rd", label:"3rd Preference"},
-  {key:"fourth", short:"4th", label:"4th Preference"}
+  { key: 'first', short: '1ST' },
+  { key: 'second', short: '2ND' },
+  { key: 'third', short: '3RD' },
+  { key: 'fourth', short: '4TH' }
 ];
 
-export default function Home(){
-  const [email,setEmail]=useState("");
-  const [prefs,setPrefs]=useState({first:"",second:"",third:"",fourth:""});
-  const [error,setError]=useState("");
-  const [submitting,setSubmitting]=useState(false);
-  const [submitted,setSubmitted]=useState(false);
-  const selected=useMemo(()=>new Set(Object.values(prefs).filter(Boolean)),[prefs]);
-  const emailValid=/^[^\s@]+@stud\.tiss\.ac\.in$/i.test(email.trim());
-  const complete=preferences.every(p=>prefs[p.key]);
+export default function Home() {
+  const [email, setEmail] = useState('');
+  const [prefs, setPrefs] = useState({ first: '', second: '', third: '', fourth: '' });
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
-  function choose(key,id){
-    setError("");
-    setPrefs(prev=>{
-      const next={...prev};
-      Object.keys(next).forEach(k=>{if(k!==key && next[k]===id) next[k]="";});
-      next[key]=id;
+  const selected = useMemo(() => new Set(Object.values(prefs).filter(Boolean)), [prefs]);
+  const emailValid = /^[^\s@]+@stud\.tiss\.ac\.in$/i.test(email.trim());
+  const complete = preferences.every((p) => prefs[p.key]);
+
+  function choose(prefKey, candidateId) {
+    setError('');
+    setPrefs((prev) => {
+      const next = { ...prev };
+      Object.keys(next).forEach((key) => {
+        if (key !== prefKey && next[key] === candidateId) next[key] = '';
+      });
+      next[prefKey] = candidateId;
       return next;
     });
   }
-  async function submit(e){
+
+  async function submit(e) {
     e.preventDefault();
-    if(!emailValid) return setError("Please use your TISS student email ending in @stud.tiss.ac.in.");
-    if(!complete) return setError("Please select one candidate for all four preferences.");
-    if(selected.size!==4) return setError("Each candidate can only be selected once.");
-    setSubmitting(true); setError("");
-    try{
-      await fetch(API_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({
-        email:email.trim().toLowerCase(),
-        first:candidates.find(c=>c.id===prefs.first)?.name,
-        second:candidates.find(c=>c.id===prefs.second)?.name,
-        third:candidates.find(c=>c.id===prefs.third)?.name,
-        fourth:candidates.find(c=>c.id===prefs.fourth)?.name
-      })});
+    if (!emailValid) return setError('Please use your @stud.tiss.ac.in email address.');
+    if (!complete) return setError('Please select a candidate for all four preferences.');
+    if (selected.size !== 4) return setError('Each candidate can only be selected once.');
+
+    const payload = {
+      email: email.trim().toLowerCase(),
+      first: candidates.find((c) => c.id === prefs.first)?.name,
+      second: candidates.find((c) => c.id === prefs.second)?.name,
+      third: candidates.find((c) => c.id === prefs.third)?.name,
+      fourth: candidates.find((c) => c.id === prefs.fourth)?.name
+    };
+
+    setSubmitting(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Your vote could not be recorded.');
+      }
+
       setSubmitted(true);
-    }catch(err){setError("We could not submit your vote. Please try again.");}
-    finally{setSubmitting(false);}
+    } catch (err) {
+      setError(err.message || 'Unable to submit your vote. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
-  if(submitted) return <main className="page"><div className="watermark"/><div className="success"><img src="/tiss-watermark.svg" className="successLogo" alt=""/><div className="tissWord">TISS</div><div className="eyebrow">Junior PPG Batch · IPC Election 2026</div><div className="check">✓</div><h1>Vote recorded.</h1><p>Thank you for participating. Your ballot has been submitted for the Junior PPG IPC Election.</p></div></main>;
-
-  return <main className="page">
-    <div className="watermark" aria-hidden="true"/>
-    <div className="wrap">
-      <header className="header">
-        <div className="identity">
-          <div className="tissBadge"><span className="tree">⌁</span><span>TISS</span></div>
-          <div><div className="eyebrow">Tata Institute of Social Sciences</div><div className="batch">Junior PPG Batch</div></div>
+  if (submitted) {
+    return (
+      <main className="page successPage">
+        <div className="successCard">
+          <div className="watermark small">TISS</div>
+          <div className="tissWordmark">TISS</div>
+          <div className="successCheck">✓</div>
+          <div className="successKicker">JUNIOR PPG BATCH · IPC ELECTION 2026</div>
+          <h1>Vote recorded.</h1>
+          <p>Thank you for participating. Your ballot has been submitted successfully.</p>
         </div>
-        <div className="year">2026</div>
-      </header>
+      </main>
+    );
+  }
 
-      <section className="titleRow">
-        <div><h1>IPC Election</h1><p>Rank four candidates in order of preference.</p></div>
-        <div className="privacyTop">● Private ballot</div>
-      </section>
+  return (
+    <main className="page">
+      <div className="watermark">TISS</div>
+      <div className="shell">
+        <header className="header">
+          <div className="identity">
+            <div className="tissLogo" aria-hidden="true"><span>TISS</span></div>
+            <div>
+              <div className="institution">TATA INSTITUTE OF SOCIAL SCIENCES</div>
+              <div className="batch">Junior PPG Batch</div>
+            </div>
+          </div>
+          <div className="year">2026</div>
+        </header>
 
-      <form className="ballot" onSubmit={submit}>
-        <div className="emailLine">
-          <label htmlFor="email">TISS student email <b>*</b></label>
-          <input id="email" type="email" value={email} onChange={e=>{setEmail(e.target.value);setError("")}} placeholder="name@stud.tiss.ac.in" autoComplete="email" required />
-          <span className="hint">Only @stud.tiss.ac.in accounts</span>
-        </div>
+        <section className="intro">
+          <div>
+            <div className="kicker">JUNIOR PPG BATCH</div>
+            <h1>IPC Election <span>2026</span></h1>
+            <p>Rank four candidates in order of preference. One candidate can be selected only once.</p>
+          </div>
+          <div className="private"><i /> Private ballot</div>
+        </section>
 
-        <div className="rankTitle"><div><h2>Candidate preference</h2><p>Choose one candidate for each preference. A candidate can be selected only once.</p></div><span className="counter">4 choices</span></div>
+        <form className="ballot" onSubmit={submit}>
+          <div className="emailRow">
+            <label htmlFor="email">TISS student email <b>*</b></label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => { setEmail(e.target.value); setError(''); }}
+              placeholder="name@stud.tiss.ac.in"
+              autoComplete="email"
+              required
+            />
+            <small>Only @stud.tiss.ac.in accounts</small>
+          </div>
 
-        <div className="table" role="table" aria-label="Candidate preference ranking">
-          <div className="row head" role="row"><div>Candidate</div>{preferences.map(p=><div key={p.key}><strong>{p.short}</strong><small>Preference</small></div>)}</div>
-          {candidates.map(c=><div className="row" role="row" key={c.id}>
-            <div className="candidate"><span className="avatar">{c.initials}</span><span>{c.name}</span></div>
-            {preferences.map(p=>{
-              const active=prefs[p.key]===c.id; const unavailable=selected.has(c.id)&&!active;
-              return <div className="cell" key={p.key}><button type="button" className={`radio ${active?"active":""} ${unavailable?"off":""}`} disabled={unavailable} onClick={()=>choose(p.key,c.id)} aria-label={`${c.name}, ${p.label}`} aria-pressed={active}>{active?"✓":""}</button></div>
-            })}
-          </div>)}
-        </div>
+          <div className="sectionTitle">
+            <div>
+              <h2>Candidate preference</h2>
+              <p>Choose one candidate for each preference. A candidate can be selected only once.</p>
+            </div>
+            <span className="counter">{selected.size}/4 chosen</span>
+          </div>
 
-        {error && <div className="error">{error}</div>}
-        <div className="actions"><div className="confidential"><span>⌕</span><span>Responses are confidential and used only for election administration.</span></div><button className="submit" disabled={submitting}>{submitting?"Submitting…":"Submit vote"}<span>→</span></button></div>
-      </form>
-      <footer>Junior PPG Batch · IPC Election 2026</footer>
-    </div>
-  </main>;
+          <div className="table">
+            <div className="row headerRow">
+              <div className="candidateHead">CANDIDATE</div>
+              {preferences.map((p) => <div className="prefHead" key={p.key}>{p.short}<small>Preference</small></div>)}
+            </div>
+            {candidates.map((candidate) => (
+              <div className="row" key={candidate.id}>
+                <div className="candidate">
+                  <span className="avatar">{candidate.initials}</span>
+                  <span>{candidate.name}</span>
+                </div>
+                {preferences.map((p) => {
+                  const isSelected = prefs[p.key] === candidate.id;
+                  const unavailable = selected.has(candidate.id) && !isSelected;
+                  return (
+                    <div className="cell" key={p.key}>
+                      <button
+                        type="button"
+                        className={`radio ${isSelected ? 'selected' : ''} ${unavailable ? 'unavailable' : ''}`}
+                        disabled={unavailable}
+                        onClick={() => choose(p.key, candidate.id)}
+                        aria-label={`${candidate.name} — ${p.short} preference`}
+                      >{isSelected ? '✓' : ''}</button>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+
+          <div className="actionRow">
+            <div className="privacy"><span>⌕</span> Your response is confidential and used only for election administration.</div>
+            {error && <div className="error">{error}</div>}
+            <button className="submit" disabled={submitting}>{submitting ? 'Submitting…' : 'Submit vote'} <span>→</span></button>
+          </div>
+        </form>
+
+        <footer>© 2026 Tata Institute of Social Sciences · Junior PPG Batch</footer>
+      </div>
+    </main>
+  );
 }
