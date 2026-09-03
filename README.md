@@ -12,7 +12,7 @@ JSON response straight to the browser. No hidden iframes or
 `postMessage` are used — the fetch response is parsed directly.
 
 Apps Script Web App:
-https://script.google.com/macros/s/AKfycbwWHbZDU2_0fW_qAmYCtUBlFtRvc3H-9WV1QtX_zd960wl6On2v9_kuYk0YuOaDKYMI/exec
+https://script.google.com/macros/s/AKfycbznTknl94iEdr0etzdHE9okUzrgNKXxDVJkalccHFmbMIXWuVQ-aYp-qqfj9cUCQ5Gm/exec
 
 Google Sheet ID:
 1OSC_RBx5g5Bwy7f8CTI2NJN4UIisXRgw19smMGAnDI0
