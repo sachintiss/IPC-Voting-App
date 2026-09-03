@@ -23,6 +23,7 @@ function doPost(e) {
 
     const p = (e && e.parameter) ? e.parameter : {};
     const email = String(p.email || "").trim().toLowerCase();
+
     const preferences = [
       String(p.first || "").trim(),
       String(p.second || "").trim(),
@@ -31,30 +32,36 @@ function doPost(e) {
     ];
 
     if (!/^[^\s@]+@stud\.tiss\.ac\.in$/i.test(email)) {
-      return htmlResponse(false, "Only @stud.tiss.ac.in email addresses are allowed.");
+      return htmlResponse(false, "Please use your TISS student email address.");
     }
 
-    if (preferences.some(p => !p)) {
+    if (preferences.some(function(value) { return !value; })) {
       return htmlResponse(false, "Please select all four preferences.");
     }
 
     if (new Set(preferences).size !== 4) {
-      return htmlResponse(false, "Each candidate can only be selected once.");
+      return htmlResponse(false, "A candidate can only be selected once.");
     }
 
-    if (preferences.some(p => !ALLOWED_CANDIDATES.includes(p))) {
+    if (preferences.some(function(value) {
+      return ALLOWED_CANDIDATES.indexOf(value) === -1;
+    })) {
       return htmlResponse(false, "Invalid candidate selection.");
     }
 
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheets()[0];
-    const lastRow = sheet.getLastRow();
 
-    if (lastRow >= 2) {
-      const emails = sheet.getRange(2, 2, lastRow - 1, 1).getValues().flat()
-        .map(v => String(v).trim().toLowerCase());
+    if (sheet.getLastRow() >= 2) {
+      const emails = sheet
+        .getRange(2, 2, sheet.getLastRow() - 1, 1)
+        .getValues()
+        .flat()
+        .map(function(value) {
+          return String(value).trim().toLowerCase();
+        });
 
-      if (emails.includes(email)) {
-        return htmlResponse(false, "A vote has already been submitted from this email address.");
+      if (emails.indexOf(email) !== -1) {
+        return htmlResponse(false, "A vote has already been recorded for this email address.");
       }
     }
 
@@ -68,11 +75,9 @@ function doPost(e) {
     ]);
 
     SpreadsheetApp.flush();
-
     return htmlResponse(true, "Vote recorded successfully.");
 
   } catch (error) {
-    console.error(error);
     return htmlResponse(false, "Unable to record vote: " + error.message);
   } finally {
     try { lock.releaseLock(); } catch (_) {}
@@ -89,14 +94,15 @@ function htmlResponse(success, message) {
   const safeMessage = JSON.stringify(String(message));
   const safeSuccess = success ? "true" : "false";
 
-  const html = `<!doctype html><html><head><meta charset="utf-8"></head><body>
-<script>
-(function() {
-  var result = { type: 'IPC_VOTE_RESULT', success: ${safeSuccess}, message: ${safeMessage} };
-  try { window.parent.postMessage(result, '*'); } catch (e) {}
-})();
-</script>
-</body></html>`;
+  const html =
+    '<!doctype html><html><head><meta charset="utf-8"></head><body>' +
+    '<script>' +
+    '(function(){' +
+    'var result={type:"IPC_VOTE_RESULT",success:' + safeSuccess +
+    ',message:' + safeMessage + '};' +
+    'try{window.parent.postMessage(result,"*");}catch(e){}' +
+    '})();' +
+    '</script></body></html>';
 
   return HtmlService
     .createHtmlOutput(html)
