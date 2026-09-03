@@ -7,57 +7,75 @@ export async function POST(request) {
   try {
     const body = await request.json();
 
-    const formData = new URLSearchParams();
-
-    formData.set("email", String(body.email || ""));
-    formData.set("first", String(body.first || ""));
-    formData.set("second", String(body.second || ""));
-    formData.set("third", String(body.third || ""));
-    formData.set("fourth", String(body.fourth || ""));
-
-    const response = await fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type":
-          "application/x-www-form-urlencoded;charset=UTF-8",
-      },
-      body: formData.toString(),
-      redirect: "follow",
-      cache: "no-store",
+    const params = new URLSearchParams({
+      email: String(body.email || ""),
+      first: String(body.first || ""),
+      second: String(body.second || ""),
+      third: String(body.third || ""),
+      fourth: String(body.fourth || ""),
     });
 
-    const text = await response.text();
+    const googleResponse = await fetch(
+      `${APPS_SCRIPT_URL}?${params.toString()}`,
+      {
+        method: "GET",
+        redirect: "follow",
+        cache: "no-store",
+      }
+    );
 
-    console.log("Apps Script HTTP status:", response.status);
-    console.log("Apps Script response:", text);
+    const raw = await googleResponse.text();
 
-    let result;
+    console.log("GOOGLE STATUS:", googleResponse.status);
+    console.log("GOOGLE FINAL URL:", googleResponse.url);
+    console.log("GOOGLE BODY:", raw);
 
-    try {
-      result = JSON.parse(text);
-    } catch (error) {
+    if (!raw || !raw.trim()) {
       return NextResponse.json(
         {
           success: false,
           message:
-            "Google Apps Script returned an unexpected response.",
+            "Google Apps Script returned an empty response.",
         },
         { status: 502 }
       );
     }
 
-    return NextResponse.json(result, {
-      status: result.success ? 200 : 400,
-    });
+    let result;
+
+    try {
+      result = JSON.parse(raw);
+    } catch (error) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Google Apps Script returned an invalid response.",
+        },
+        { status: 502 }
+      );
+    }
+
+    return NextResponse.json(
+      {
+        success: Boolean(result.success),
+        message: String(
+          result.message || "Unknown response from Google Apps Script."
+        ),
+      },
+      {
+        status: result.success ? 200 : 400,
+      }
+    );
 
   } catch (error) {
-    console.error("Vote submission error:", error);
+    console.error("VOTE API ERROR:", error);
 
     return NextResponse.json(
       {
         success: false,
         message:
-          "Unable to connect to the election server. Please try again.",
+          "Election server error: " + error.message,
       },
       { status: 500 }
     );
