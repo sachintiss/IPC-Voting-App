@@ -1,53 +1,46 @@
 import { NextResponse } from "next/server";
 
 const APPS_SCRIPT_URL =
-  "https://script.google.com/a/macros/stud.tiss.ac.in/s/AKfycbxexxNuq5wPiueNfS7Wbl1G4q3i18W8S0cGgTjQfgONOf5MVoRsvyZ65sQS9m1OVzL0/exec";
+  "https://script.google.com/macros/s/AKfycbxexxNuq5wPiueNfS7Wbl1G4q3i18W8S0cGgTjQfgONOf5MVoRsvyZ65sQS9m1OVzL0/exec";
 
 export async function POST(request) {
   try {
     const body = await request.json();
 
+    const params = new URLSearchParams();
+
+    params.append("email", String(body.email || ""));
+    params.append("first", String(body.first || ""));
+    params.append("second", String(body.second || ""));
+    params.append("third", String(body.third || ""));
+    params.append("fourth", String(body.fourth || ""));
+
     const upstream = await fetch(APPS_SCRIPT_URL, {
       method: "POST",
       headers: {
-        "Content-Type":
-          "application/x-www-form-urlencoded;charset=UTF-8",
+        "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: new URLSearchParams({
-        email: String(body.email || ""),
-        first: String(body.first || ""),
-        second: String(body.second || ""),
-        third: String(body.third || ""),
-        fourth: String(body.fourth || ""),
-      }).toString(),
+      body: params.toString(),
       redirect: "follow",
       cache: "no-store",
     });
 
     const text = await upstream.text();
 
-    console.log("=================================");
-    console.log("APPS SCRIPT STATUS:", upstream.status);
-    console.log("APPS SCRIPT URL:", APPS_SCRIPT_URL);
-    console.log("APPS SCRIPT RESPONSE:");
-    console.log(text.substring(0, 2000));
-    console.log("=================================");
+    console.log("Apps Script HTTP status:", upstream.status);
+    console.log("Apps Script response:", text);
 
     let result;
 
     try {
       result = JSON.parse(text);
-    } catch (error) {
-
+    } catch {
       return NextResponse.json(
         {
           success: false,
           message:
-            "Apps Script returned a non-JSON response.",
-          debug: {
-            status: upstream.status,
-            responsePreview: text.substring(0, 500)
-          }
+            "Google Apps Script returned a non-JSON response.",
+          debug: text.substring(0, 300),
         },
         { status: 502 }
       );
@@ -58,14 +51,12 @@ export async function POST(request) {
     });
 
   } catch (error) {
-
-    console.error("VOTE ERROR:", error);
+    console.error("Election API error:", error);
 
     return NextResponse.json(
       {
         success: false,
-        message: "Unable to connect to election server.",
-        error: error.message
+        message: "Unable to connect to the election server.",
       },
       { status: 500 }
     );
