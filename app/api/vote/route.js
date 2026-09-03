@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 const APPS_SCRIPT_URL =
-  "https://script.google.com/a/macros/stud.tiss.ac.in/s/AKfycbxAZbTbSNNnnkwQRzLgJvzTGrHAN14L3EI3QovGFV28sGzOyt6MdkmeJwYxrsMnlk0x/exec";
+  "https://script.google.com/a/macros/stud.tiss.ac.in/s/AKfycbxexxNuq5wPiueNfS7Wbl1G4q3i18W8S0cGgTjQfgONOf5MVoRsvyZ65sQS9m1OVzL0/exec";
 
 export async function POST(request) {
   try {
@@ -26,22 +26,19 @@ export async function POST(request) {
 
     const text = await upstream.text();
 
+    console.log("Apps Script status:", upstream.status);
+    console.log("Apps Script response:", text);
+
     let result;
 
     try {
       result = JSON.parse(text);
     } catch (error) {
-      console.error(
-        "Apps Script returned non-JSON:",
-        upstream.status,
-        text.substring(0, 500)
-      );
-
       return NextResponse.json(
         {
           success: false,
           message:
-            "Google Sheets connection failed. Please check the Apps Script deployment access settings.",
+            "Google Apps Script did not return a valid response. Check the Apps Script deployment access.",
         },
         { status: 502 }
       );
@@ -52,13 +49,13 @@ export async function POST(request) {
     });
 
   } catch (error) {
-    console.error(error);
+    console.error("Vote API error:", error);
 
     return NextResponse.json(
       {
         success: false,
         message:
-          "Unable to connect to the election server. Please try again.",
+          "Unable to connect to the election server.",
       },
       { status: 500 }
     );
