@@ -1,16 +1,84 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
 
-:root{--green:#007f56;--green-dark:#006b49;--green-soft:#eef8f3;--ink:#151a18;--muted:#7b8580;--line:#dfe7e2;--bg:#fbfcfb;--white:#fff}
-*{box-sizing:border-box}html,body{margin:0;width:100%;min-height:100%;font-family:'DM Sans',Arial,sans-serif;color:var(--ink)}body{background:var(--bg)}button,input{font:inherit}
-.page{height:100svh;min-height:620px;overflow:hidden;position:relative;background:linear-gradient(135deg,#fff 0%,#fbfcfb 60%,#f6faf7 100%)}
-.shell{position:relative;z-index:2;width:min(1080px,calc(100% - 56px));height:100%;margin:auto;padding:14px 0 7px;display:grid;grid-template-rows:auto auto 1fr auto;gap:0}
-.watermark{position:absolute;z-index:0;left:50%;top:50%;transform:translate(-50%,-45%);font-size:280px;line-height:1;font-weight:700;letter-spacing:-.08em;color:rgba(0,127,86,.035);pointer-events:none;user-select:none}.watermark.small{position:static;transform:none;font-size:65px;margin-bottom:12px;color:rgba(0,127,86,.08)}
-.header{display:flex;align-items:center;justify-content:space-between}.identity{display:flex;align-items:center;gap:11px}.tissLogo{width:42px;height:42px;border:1px solid #b9d8ca;border-radius:11px;display:grid;place-items:center;background:#fff;color:var(--green);font-weight:700;font-size:8px}.institution{font-size:8px;letter-spacing:.12em;color:#7c8581;font-weight:700}.batch{font-size:13px;font-weight:700;margin-top:3px}.year{font-size:11px;color:#7d8682;font-weight:600}
-.intro{display:flex;align-items:flex-end;justify-content:space-between;padding:18px 0 12px}.kicker{font-size:9px;letter-spacing:.16em;color:var(--green);font-weight:700;margin-bottom:6px}.intro h1{font-size:36px;line-height:1;letter-spacing:-.05em;margin:0}.intro h1 span{font-weight:400;color:#707975}.intro p{font-size:11px;color:var(--muted);margin:8px 0 0}.private{font-size:9px;border:1px solid #cde1d7;border-radius:999px;padding:7px 10px;color:var(--green);background:#fff;font-weight:600}.private i{display:inline-block;width:5px;height:5px;background:var(--green);border-radius:50%;margin-right:5px}
-.ballot{position:relative;z-index:2;background:rgba(255,255,255,.96);border:1px solid #dce5df;border-radius:17px;box-shadow:0 12px 35px rgba(31,53,43,.07);min-height:0;display:flex;flex-direction:column;overflow:hidden}.emailRow{display:grid;grid-template-columns:145px 1fr 155px;gap:12px;align-items:center;padding:10px 22px;border-bottom:1px solid var(--line)}.emailRow label{font-size:11px;font-weight:700}.emailRow label b{color:var(--green)}.emailRow input{height:38px;width:100%;border:1px solid #d7e1db;background:#fff;border-radius:9px;padding:0 12px;outline:none;font-size:10px;color:var(--ink)}.emailRow input:focus{border-color:#79b79d;box-shadow:0 0 0 3px rgba(0,127,86,.08)}.emailRow small{font-size:8px;color:#858e8a}
-.sectionTitle{display:flex;align-items:center;justify-content:space-between;padding:10px 22px 7px}.sectionTitle h2{font-size:14px;margin:0 0 3px}.sectionTitle p{font-size:8.5px;color:var(--muted);margin:0}.counter{font-size:8px;background:var(--green-soft);color:var(--green);border-radius:999px;padding:6px 9px;font-weight:700}
-.table{margin:0 22px;border:1px solid var(--line);border-radius:11px;overflow:hidden}.row{display:grid;grid-template-columns:minmax(300px,1fr) repeat(4,105px);min-height:45px;border-top:1px solid var(--line)}.row:first-child{border-top:0}.headerRow{min-height:34px;background:#f7faf8}.candidateHead{padding-left:15px;display:flex;align-items:center;font-size:7px;letter-spacing:.12em;color:#7e8984;font-weight:700}.prefHead{border-left:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex-direction:column;font-size:9px;color:var(--green);font-weight:800}.prefHead small{font-size:7px;color:#98a19d;font-weight:500;margin-top:1px}.candidate{display:flex;align-items:center;gap:9px;padding:6px 13px;font-size:10px;font-weight:600}.avatar{width:27px;height:27px;display:grid;place-items:center;flex:none;border-radius:50%;background:#eaf4ef;color:var(--green);font-size:7px;font-weight:800}.cell{border-left:1px solid var(--line);display:grid;place-items:center}.radio{width:22px;height:22px;border-radius:50%;border:1.5px solid #c2cec7;background:#fff;display:grid;place-items:center;color:#fff;font-size:10px;font-weight:800;cursor:pointer;transition:.12s}.radio:hover:not(:disabled){border-color:#75b69c;transform:scale(1.06)}.radio.selected{background:var(--green);border-color:var(--green);box-shadow:0 3px 8px rgba(0,127,86,.18)}.radio.unavailable{background:#f4f6f5;border-color:#e4e9e6;cursor:not-allowed}
-.actionRow{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:12px;padding:9px 22px}.privacy{font-size:8px;color:#8a938f}.privacy span{font-size:11px;color:var(--green);margin-right:5px}.error{font-size:8px;color:#a3333d;background:#fff1f1;border-radius:7px;padding:7px 9px}.submit{height:37px;padding:0 17px;border:0;border-radius:9px;background:var(--green);color:#fff;font-size:10px;font-weight:700;cursor:pointer;box-shadow:0 6px 13px rgba(0,127,86,.18)}.submit:hover:not(:disabled){background:var(--green-dark)}.submit:disabled{opacity:.6;cursor:wait}.submit span{font-size:14px;margin-left:8px}footer{text-align:center;color:#9ba39f;font-size:7px;padding-top:4px}
-.successPage{display:grid;place-items:center}.successCard{position:relative;z-index:2;width:min(520px,calc(100% - 36px));background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 18px 50px rgba(31,53,43,.08);padding:45px 35px;text-align:center}.tissWordmark{font-size:12px;letter-spacing:.22em;color:var(--green);font-weight:700;margin-bottom:18px}.successCheck{width:48px;height:48px;margin:0 auto 15px;border-radius:50%;display:grid;place-items:center;background:var(--green-soft);color:var(--green);font-size:21px;font-weight:700}.successKicker{font-size:8px;letter-spacing:.12em;color:#7c8782;font-weight:700}.successCard h1{font-size:31px;letter-spacing:-.04em;margin:9px 0}.successCard p{font-size:11px;color:var(--muted);line-height:1.6;margin:0}
-@media(max-width:900px){.page{height:auto;min-height:100svh;overflow:auto}.shell{width:min(720px,calc(100% - 28px));height:auto;min-height:100svh;padding:17px 0}.intro{padding:23px 0 16px}.intro h1{font-size:33px}.emailRow{grid-template-columns:120px 1fr}.emailRow small{display:none}.table{margin:0 14px;overflow-x:auto}.row{min-width:690px}.actionRow{grid-template-columns:1fr auto}.privacy{grid-column:1/-1}.submit{grid-column:2}.sectionTitle,.emailRow{padding-left:14px;padding-right:14px}}
-@media(max-width:560px){.shell{width:calc(100% - 18px)}.year,.private{display:none}.intro h1{font-size:29px}.intro p{max-width:320px}.emailRow{grid-template-columns:1fr}.emailRow input{grid-column:1}.ballot{border-radius:14px}.row{min-width:650px;grid-template-columns:250px repeat(4,100px)}.table{margin:0 10px}.actionRow{padding:10px}.submit{grid-column:1;width:100%}}
+:root{--green:#0b6e42;--green-dark:#08512f;--green-soft:#eaf5ee;--ink:#16201b;--muted:#6f7a74;--line:#e3e9e4;--bg:#f7faf8;--white:#fff}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;min-height:100%;font-family:'DM Sans',Arial,sans-serif;color:var(--ink)}
+body{background:var(--bg)}
+button,input{font:inherit}
+
+.page{min-height:100svh;position:relative;overflow-x:hidden;background:linear-gradient(180deg,#ffffff 0%,#f7faf8 100%);padding:48px 0 60px}
+
+.bgTree{position:absolute;top:50%;width:520px;height:520px;background-image:url('/tiss-logo.png');background-repeat:no-repeat;background-size:contain;background-position:center;opacity:.05;pointer-events:none;user-select:none;transform:translateY(-50%)}
+.bgTree.left{left:-160px}
+.bgTree.right{right:-160px}
+
+.shell{position:relative;z-index:2;width:min(920px,calc(100% - 32px));margin:0 auto}
+
+.intro{text-align:center;margin-bottom:28px}
+.logo{width:96px;height:auto;display:block;margin:0 auto 14px}
+.logo.small{width:64px;margin:0 auto 18px}
+.kicker{font-size:12px;letter-spacing:.18em;color:var(--green);font-weight:700;margin-bottom:8px}
+.intro h1{font-size:34px;letter-spacing:-.02em;margin:0}
+.intro h1 span{color:var(--green)}
+.intro p{font-size:13px;color:var(--muted);margin:10px auto 0;max-width:480px}
+
+.ballot{background:var(--white);border:1px solid var(--line);border-radius:20px;box-shadow:0 20px 45px rgba(20,40,30,.06);padding:32px 32px 26px;display:flex;flex-direction:column;gap:26px}
+
+.block{display:flex;flex-direction:column;gap:12px}
+.blockTitle{display:flex;align-items:center;gap:12px}
+.badge{width:26px;height:26px;flex:none;border-radius:50%;background:var(--green);color:#fff;font-size:13px;font-weight:700;display:grid;place-items:center}
+.blockTitle h2{font-size:17px;margin:0;font-weight:700}
+
+.emailField{display:flex;align-items:center;gap:10px;border:1.5px solid var(--green);border-radius:10px;padding:0 14px;height:48px;background:#fff}
+.emailField .mailIcon{color:var(--green);font-size:15px}
+.emailField input{flex:1;border:0;outline:0;height:100%;font-size:14px;color:var(--ink);background:transparent}
+.emailField input::placeholder{color:#a9b3ae}
+.block small{font-size:12px;color:var(--muted)}
+
+.table{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.row{display:grid;grid-template-columns:1fr repeat(4,minmax(90px,1fr));align-items:center;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.headerRow{background:#f6faf7;min-height:44px}
+.candidateHead{padding-left:16px;font-size:12px;font-weight:700;color:var(--ink)}
+.prefHead{text-align:center;font-size:12px;font-weight:700;color:var(--green);padding:10px 4px}
+.candidate{padding:14px 16px;font-size:14px;font-weight:500}
+.cell{display:grid;place-items:center;padding:10px 0}
+.radio{width:20px;height:20px;border-radius:50%;border:1.6px solid #b9c6bf;background:#fff;cursor:pointer;transition:.15s;padding:0}
+.radio:hover:not(:disabled){border-color:var(--green)}
+.radio.selected{border-color:var(--green);background:radial-gradient(circle,var(--green) 0 42%,transparent 44%)}
+.radio.unavailable{background:#f1f3f2;border-color:#e2e6e3;cursor:not-allowed}
+
+.privacy{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--green);background:var(--green-soft);border-radius:10px;padding:12px 16px}
+.privacy span{font-size:13px}
+
+.error{font-size:13px;color:#a3333d;background:#fff1f1;border-radius:10px;padding:11px 15px}
+
+.submit{width:100%;height:52px;border:0;border-radius:11px;background:var(--green);color:#fff;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 10px 20px rgba(11,110,66,.2)}
+.submit:hover:not(:disabled){background:var(--green-dark)}
+.submit:disabled{opacity:.6;cursor:wait}
+.submit span{font-size:17px}
+
+footer{text-align:center;color:#93a09a;font-size:12px;margin-top:22px}
+
+.successPage{display:grid;place-items:center}
+.successCard{position:relative;z-index:2;width:min(480px,calc(100% - 32px));background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:0 20px 50px rgba(20,40,30,.08);padding:48px 36px;text-align:center}
+.successCheck{width:52px;height:52px;margin:0 auto 16px;border-radius:50%;display:grid;place-items:center;background:var(--green-soft);color:var(--green);font-size:24px;font-weight:700}
+.successKicker{font-size:11px;letter-spacing:.12em;color:var(--muted);font-weight:700}
+.successCard h1{font-size:28px;letter-spacing:-.02em;margin:10px 0}
+.successCard p{font-size:14px;color:var(--muted);line-height:1.6;margin:0}
+
+@media(max-width:720px){
+  .ballot{padding:24px 18px 20px}
+  .row{grid-template-columns:1fr repeat(4,60px)}
+  .candidate{padding:12px 10px;font-size:13px}
+  .prefHead{font-size:10px;padding:8px 2px}
+  .intro h1{font-size:27px}
+  .table{overflow-x:auto}
+  .row{min-width:520px}
+  .bgTree{width:320px;height:320px}
+}
+@media(max-width:460px){
+  .badge{width:22px;height:22px;font-size:11px}
+  .blockTitle h2{font-size:15px}
+  .emailField{height:44px}
+}

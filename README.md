@@ -3,10 +3,16 @@
 Clean final build for Vercel + Google Apps Script + Google Sheets.
 
 Architecture:
-Browser → Google Apps Script → Google Sheet
+Browser → Vercel (`/api/vote`) → Google Apps Script Web App → Google Sheet
+
+The frontend (`app/page.js`) submits the ballot to the app's own
+`/api/vote` API route. That route calls the Apps Script Web App as a
+server-side GET request (`?action=submit&...`) and returns Apps Script's
+JSON response straight to the browser. No hidden iframes or
+`postMessage` are used — the fetch response is parsed directly.
 
 Apps Script Web App:
-https://script.google.com/a/macros/stud.tiss.ac.in/s/AKfycbwWHbZDU2_0fW_qAmYCtUBlFtRvc3H-9WV1QtX_zd960wl6On2v9_kuYk0YuOaDKYMI/exec
+https://script.google.com/macros/s/AKfycbwWHbZDU2_0fW_qAmYCtUBlFtRvc3H-9WV1QtX_zd960wl6On2v9_kuYk0YuOaDKYMI/exec
 
 Google Sheet ID:
 1OSC_RBx5g5Bwy7f8CTI2NJN4UIisXRgw19smMGAnDI0
@@ -24,11 +30,12 @@ Pranav Rajendra Dande
 Deployment:
 1. Open the Apps Script project named IPC Election.
 2. Replace Code.gs with the contents of APPS_SCRIPT_CODE.gs.
-3. Deploy it as a Web app, executing as the owner.
-4. Make sure the deployment is accessible to the intended TISS users.
-5. Deploy this project as a fresh Vercel deployment or replace the existing project.
+3. Deploy it as a Web app, executing as the owner, accessible to "Anyone"
+   with the link (the Vercel server calls it directly, so it must not be
+   restricted to a Google Workspace domain — the request doesn't carry a
+   signed-in Google session).
+4. Confirm the deployment URL matches `APPS_SCRIPT_URL` in
+   `app/api/vote/route.js`.
+5. Deploy this project as a fresh Vercel deployment or replace the
+   existing project.
 6. Hard-refresh the deployed page after deployment.
-
-The frontend sends a hidden HTML form directly to the Apps Script Web App.
-The response is received through a hidden iframe using postMessage.
-No server-side parsing of the Apps Script response is required.
