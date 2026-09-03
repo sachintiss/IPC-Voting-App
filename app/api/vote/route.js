@@ -26,19 +26,28 @@ export async function POST(request) {
 
     const text = await upstream.text();
 
-    console.log("Apps Script status:", upstream.status);
-    console.log("Apps Script response:", text);
+    console.log("=================================");
+    console.log("APPS SCRIPT STATUS:", upstream.status);
+    console.log("APPS SCRIPT URL:", APPS_SCRIPT_URL);
+    console.log("APPS SCRIPT RESPONSE:");
+    console.log(text.substring(0, 2000));
+    console.log("=================================");
 
     let result;
 
     try {
       result = JSON.parse(text);
     } catch (error) {
+
       return NextResponse.json(
         {
           success: false,
           message:
-            "Google Apps Script did not return a valid response. Check the Apps Script deployment access.",
+            "Apps Script returned a non-JSON response.",
+          debug: {
+            status: upstream.status,
+            responsePreview: text.substring(0, 500)
+          }
         },
         { status: 502 }
       );
@@ -49,13 +58,14 @@ export async function POST(request) {
     });
 
   } catch (error) {
-    console.error("Vote API error:", error);
+
+    console.error("VOTE ERROR:", error);
 
     return NextResponse.json(
       {
         success: false,
-        message:
-          "Unable to connect to the election server.",
+        message: "Unable to connect to election server.",
+        error: error.message
       },
       { status: 500 }
     );
