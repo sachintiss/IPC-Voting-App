@@ -1,197 +1,101 @@
-'use client';
+"use client";
+import { useMemo, useState } from "react";
 
-import { useMemo, useState } from 'react';
-
+const API_URL = "https://script.google.com/a/macros/stud.tiss.ac.in/s/AKfycbxAZbTbSNNnnkwQRzLgJvzTGrHAN14L3EI3QovGFV28sGzOyt6MdkmeJwYxrsMnlk0x/exec";
 const candidates = [
-  { id: 'aishwarya', name: 'Aishwarya Mahobiya', initials: 'AM' },
-  { id: 'avantika', name: 'Avantika Kumari', initials: 'AK' },
-  { id: 'himanshu', name: 'Himanshu Lodhi', initials: 'HL' },
-  { id: 'dhanush', name: 'M Dhanush', initials: 'MD' },
-  { id: 'pranav', name: 'Pranav Rajendra Dande', initials: 'PD' }
+  { id:"aishwarya", name:"Aishwarya Mahobiya", initials:"AM" },
+  { id:"avantika", name:"Avantika Kumari", initials:"AK" },
+  { id:"himanshu", name:"Himanshu Lodhi", initials:"HL" },
+  { id:"dhanush", name:"M Dhanush", initials:"MD" },
+  { id:"pranav", name:"Pranav Rajendra Dande", initials:"PD" }
+];
+const preferences = [
+  {key:"first", short:"1st", label:"1st Preference"},
+  {key:"second", short:"2nd", label:"2nd Preference"},
+  {key:"third", short:"3rd", label:"3rd Preference"},
+  {key:"fourth", short:"4th", label:"4th Preference"}
 ];
 
-const preferenceLabels = [
-  { key: 'first', label: '1st Preference', sub: 'Your strongest choice' },
-  { key: 'second', label: '2nd Preference', sub: 'Your next choice' },
-  { key: 'third', label: '3rd Preference', sub: 'Your third choice' },
-  { key: 'fourth', label: '4th Preference', sub: 'Your fourth choice' }
-];
+export default function Home(){
+  const [email,setEmail]=useState("");
+  const [prefs,setPrefs]=useState({first:"",second:"",third:"",fourth:""});
+  const [error,setError]=useState("");
+  const [submitting,setSubmitting]=useState(false);
+  const [submitted,setSubmitted]=useState(false);
+  const selected=useMemo(()=>new Set(Object.values(prefs).filter(Boolean)),[prefs]);
+  const emailValid=/^[^\s@]+@stud\.tiss\.ac\.in$/i.test(email.trim());
+  const complete=preferences.every(p=>prefs[p.key]);
 
-export default function Home() {
-  const [email, setEmail] = useState('');
-  const [prefs, setPrefs] = useState({ first: '', second: '', third: '', fourth: '' });
-  const [error, setError] = useState('');
-  const [submitted, setSubmitted] = useState(false);
-
-  const selected = useMemo(() => new Set(Object.values(prefs).filter(Boolean)), [prefs]);
-  const allComplete = preferenceLabels.every(p => prefs[p.key]);
-  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-  function choose(key, candidateId) {
-    setError('');
-    setPrefs(prev => {
-      const next = { ...prev };
-      // A candidate may appear only once across the four preference positions.
-      for (const k of Object.keys(next)) {
-        if (k !== key && next[k] === candidateId) next[k] = '';
-      }
-      next[key] = candidateId;
+  function choose(key,id){
+    setError("");
+    setPrefs(prev=>{
+      const next={...prev};
+      Object.keys(next).forEach(k=>{if(k!==key && next[k]===id) next[k]="";});
+      next[key]=id;
       return next;
     });
   }
-
-  function submit(e) {
+  async function submit(e){
     e.preventDefault();
-    if (!emailValid) {
-      setError('Please enter a valid email address.');
-      return;
-    }
-    if (!allComplete) {
-      setError('Please select one candidate for every preference from 1st to 4th.');
-      return;
-    }
-    if (selected.size !== 4) {
-      setError('Each preference must be a different candidate.');
-      return;
-    }
-    setError('');
-    // Prototype submission. Connect this handler to a database/API for production.
-    setSubmitted(true);
+    if(!emailValid) return setError("Please use your TISS student email ending in @stud.tiss.ac.in.");
+    if(!complete) return setError("Please select one candidate for all four preferences.");
+    if(selected.size!==4) return setError("Each candidate can only be selected once.");
+    setSubmitting(true); setError("");
+    try{
+      await fetch(API_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({
+        email:email.trim().toLowerCase(),
+        first:candidates.find(c=>c.id===prefs.first)?.name,
+        second:candidates.find(c=>c.id===prefs.second)?.name,
+        third:candidates.find(c=>c.id===prefs.third)?.name,
+        fourth:candidates.find(c=>c.id===prefs.fourth)?.name
+      })});
+      setSubmitted(true);
+    }catch(err){setError("We could not submit your vote. Please try again.");}
+    finally{setSubmitting(false);}
   }
 
-  if (submitted) {
-    return (
-      <main className="page">
-        <div className="shell narrow">
-          <div className="brand">
-            <div className="brandMark">PPG</div>
-            <div>
-              <div className="eyebrow">Junior PPG Batch</div>
-              <div className="brandTitle">IPC Election 2026</div>
-            </div>
-          </div>
+  if(submitted) return <main className="page"><div className="watermark"/><div className="success"><img src="/tiss-watermark.svg" className="successLogo" alt=""/><div className="tissWord">TISS</div><div className="eyebrow">Junior PPG Batch · IPC Election 2026</div><div className="check">✓</div><h1>Vote recorded.</h1><p>Thank you for participating. Your ballot has been submitted for the Junior PPG IPC Election.</p></div></main>;
 
-          <section className="successCard">
-            <div className="successIcon">✓</div>
-            <div className="eyebrow">Vote recorded</div>
-            <h1>Thank you for voting.</h1>
-            <p>Your preference has been submitted successfully. Your response will be kept confidential and used solely for the Junior PPG IPC Election.</p>
-            <div className="confirmation">
-              <span>Submitted for</span>
-              <strong>{email}</strong>
-            </div>
-          </section>
+  return <main className="page">
+    <div className="watermark" aria-hidden="true"/>
+    <div className="wrap">
+      <header className="header">
+        <div className="identity">
+          <div className="tissBadge"><span className="tree">⌁</span><span>TISS</span></div>
+          <div><div className="eyebrow">Tata Institute of Social Sciences</div><div className="batch">Junior PPG Batch</div></div>
         </div>
-      </main>
-    );
-  }
+        <div className="year">2026</div>
+      </header>
 
-  return (
-    <main className="page">
-      <div className="shell">
-        <header className="topbar">
-          <div className="brand">
-            <div className="brandMark">PPG</div>
-            <div>
-              <div className="eyebrow">Junior PPG Batch</div>
-              <div className="brandTitle">IPC Election 2026</div>
-            </div>
-          </div>
-          <div className="securePill"><span>●</span> Confidential ballot</div>
-        </header>
+      <section className="titleRow">
+        <div><h1>IPC Election</h1><p>Rank four candidates in order of preference.</p></div>
+        <div className="privacyTop">● Private ballot</div>
+      </section>
 
-        <section className="hero">
-          <div>
-            <div className="eyebrow accent">Student Election</div>
-            <h1>Choose your representatives.<br/><em>Make your voice count.</em></h1>
-            <p>Rank four candidates in order of preference. One candidate can only be selected once.</p>
-          </div>
-          <div className="heroNumber"><strong>04</strong><span>preferences</span></div>
-        </section>
+      <form className="ballot" onSubmit={submit}>
+        <div className="emailLine">
+          <label htmlFor="email">TISS student email <b>*</b></label>
+          <input id="email" type="email" value={email} onChange={e=>{setEmail(e.target.value);setError("")}} placeholder="name@stud.tiss.ac.in" autoComplete="email" required />
+          <span className="hint">Only @stud.tiss.ac.in accounts</span>
+        </div>
 
-        <form onSubmit={submit} className="formCard">
-          <div className="sectionHead">
-            <div className="step">01</div>
-            <div>
-              <h2>Your email</h2>
-              <p>Used only to verify one response per student.</p>
-            </div>
-          </div>
+        <div className="rankTitle"><div><h2>Candidate preference</h2><p>Choose one candidate for each preference. A candidate can be selected only once.</p></div><span className="counter">4 choices</span></div>
 
-          <label className="fieldLabel" htmlFor="email">Email address <span>*</span></label>
-          <input
-            id="email"
-            type="email"
-            placeholder="you@institution.edu"
-            value={email}
-            onChange={e => { setEmail(e.target.value); setError(''); }}
-            required
-          />
-
-          <div className="divider" />
-
-          <div className="sectionHead">
-            <div className="step">02</div>
-            <div>
-              <h2>Candidate preference</h2>
-              <p>Select exactly one candidate for each preference. Once chosen, a candidate becomes unavailable in the other preference levels.</p>
-            </div>
-          </div>
-
-          <div className="preferenceList">
-            {preferenceLabels.map((pref, index) => {
-              const current = prefs[pref.key];
-              return (
-                <section className="preference" key={pref.key}>
-                  <div className="prefHeader">
-                    <div className="prefBadge">{index + 1}</div>
-                    <div>
-                      <h3>{pref.label}</h3>
-                      <span>{pref.sub}</span>
-                    </div>
-                    {current && <div className="chosen">Selected</div>}
-                  </div>
-
-                  <div className="candidateGrid">
-                    {candidates.map(candidate => {
-                      const isCurrent = current === candidate.id;
-                      const usedElsewhere = selected.has(candidate.id) && !isCurrent;
-                      return (
-                        <button
-                          type="button"
-                          key={candidate.id}
-                          className={`candidate ${isCurrent ? 'selected' : ''} ${usedElsewhere ? 'disabled' : ''}`}
-                          onClick={() => !usedElsewhere && choose(pref.key, candidate.id)}
-                          disabled={usedElsewhere}
-                          aria-pressed={isCurrent}
-                        >
-                          <span className="avatar">{candidate.initials}</span>
-                          <span className="candidateName">{candidate.name}</span>
-                          <span className="radio">{isCurrent ? '✓' : ''}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </section>
-              );
+        <div className="table" role="table" aria-label="Candidate preference ranking">
+          <div className="row head" role="row"><div>Candidate</div>{preferences.map(p=><div key={p.key}><strong>{p.short}</strong><small>Preference</small></div>)}</div>
+          {candidates.map(c=><div className="row" role="row" key={c.id}>
+            <div className="candidate"><span className="avatar">{c.initials}</span><span>{c.name}</span></div>
+            {preferences.map(p=>{
+              const active=prefs[p.key]===c.id; const unavailable=selected.has(c.id)&&!active;
+              return <div className="cell" key={p.key}><button type="button" className={`radio ${active?"active":""} ${unavailable?"off":""}`} disabled={unavailable} onClick={()=>choose(p.key,c.id)} aria-label={`${c.name}, ${p.label}`} aria-pressed={active}>{active?"✓":""}</button></div>
             })}
-          </div>
+          </div>)}
+        </div>
 
-          <div className="rule">
-            <span>i</span>
-            <p><strong>One candidate, one preference.</strong> Selecting someone as your 1st preference automatically prevents that candidate from being selected again.</p>
-          </div>
-
-          {error && <div className="error" role="alert">{error}</div>}
-
-          <div className="submitRow">
-            <div className="privacy"><span>🔒</span><span>Your response is confidential.</span></div>
-            <button className="submit" type="submit">Submit my vote <span>→</span></button>
-          </div>
-        </form>
-
-        <footer>Junior PPG Batch · IPC Election 2026</footer>
-      </div>
-    </main>
-  );
+        {error && <div className="error">{error}</div>}
+        <div className="actions"><div className="confidential"><span>⌕</span><span>Responses are confidential and used only for election administration.</span></div><button className="submit" disabled={submitting}>{submitting?"Submitting…":"Submit vote"}<span>→</span></button></div>
+      </form>
+      <footer>Junior PPG Batch · IPC Election 2026</footer>
+    </div>
+  </main>;
 }
